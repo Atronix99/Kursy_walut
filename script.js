@@ -7,6 +7,7 @@ const darkModeToggle = document.getElementById('darkModeToggle');
 const body = document.body;
 const siteLogo = document.getElementById('siteLogo');
 const suggestionsBox=document.querySelector("#suggestionsBox")
+const searchBox=document.querySelector(".search-box")
 
 
 //Motywy 
@@ -47,6 +48,7 @@ darkModeToggle.addEventListener('change', (event) => {
 });
 
 async function hint() {
+    
     const input = document.querySelector(".search-input");
     const suggestions = document.querySelector("#suggestions");
     let countries = [];
@@ -71,7 +73,7 @@ async function hint() {
             suggestions.style.display = "none";
             return;
         }
-
+        
         const filtered = countries.filter(name => name.toLowerCase().startsWith(value)).slice(0,10);
 
         filtered.forEach(name => {
@@ -85,15 +87,20 @@ async function hint() {
             });
             suggestions.appendChild(div);
         });
-
+        
         suggestions.style.display = filtered.length ? "block" : "none";
+        
+        
+        
     });
 
     document.addEventListener("click", e => {
         if (!input.contains(e.target) && !suggestions.contains(e.target)) {
             suggestions.innerHTML = "";
             suggestions.style.display = "none";
+            
         }
+        
     });
 
     
