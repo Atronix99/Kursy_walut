@@ -130,7 +130,7 @@ body.dark-mode .menu-option button:hover {
     background-color: var(--button-hover-color);
 }
 body.dark-mode .suggestions {
-    background: rgba(255,255,255,0.07);
+    background: var(--settings-menu-bg-dark);
     border-color: var(--button-color);
 }
 
@@ -188,6 +188,11 @@ body.dark-mode .description-text{
     box-shadow: none;
 }
 
+.search-box.open{
+    border-bottom-left-radius: 0px;
+    border-bottom-right-radius: 0px;
+}
+
 .search-input:focus-within { 
     outline: none;
 }
@@ -230,6 +235,7 @@ background: linear-gradient(90deg, rgba(128, 224, 215, 1) 0%, rgba(87, 199, 180,
     line-height: 50px;
     font-family: var(--Kadwa);
     transition: color 0.5s ease;
+    margin-top: 40px;
     
 }
 
@@ -239,23 +245,25 @@ background: linear-gradient(90deg, rgba(128, 224, 215, 1) 0%, rgba(87, 199, 180,
     display: flex;
     justify-content: center;
     position: relative;
-    margin-top: -20px;
+    margin-top: -60px;
 }
 
 .suggestions {
     width: 80%;
     max-width: 400px;
-    background: rgba(255, 255, 255, 0.85);
-    border-radius: 20px;
+    background: rgba(255, 255, 255);
+    border-bottom-left-radius: 20px;
+    border-bottom-right-radius: 20px;
     border: 2px solid var(--primary-color);
     margin-top: 10px;
     display: none;
     overflow: hidden;
     box-shadow: 0px 6px 15px rgba(0,0,0,0.4);
     font-family: var(--Kadwa);
-    z-index: 50;
+    
     transition: opacity .25s ease-in-out, transform .25s ease-in-out;
     animation: fadeInSuggestions .25s ease-out;
+    position: absolute;
 }
 
 
