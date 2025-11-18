@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Wyszukiwarka Państw</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <script defer src="script.js"></script>
+</head>
+<body>
+
+    <div class="settings-container">
+        <i class="fas fa-cog settings-icon" id="settingsIcon"></i>
+
+        <div class="settings-menu" id="settingsMenu">
+            <h3>Ustawienia</h3>
+            <div class="menu-option">
+                <span>Tryb Ciemny/Jasny</span>
+                <label class="switch">
+                    <input type="checkbox" id="darkModeToggle"> 
+                    <span class="slider round"></span>
+                </label>
+            </div>
+            <div class="menu-option centered-option"> 
+                <button id="favoritesButton">Ulubione kraje</button>
+            </div>
+            <div class="cog-placeholder"></div>
+        </div>
+    </div>
+
+
+    <div class="main-container">
+        <div class="logo">
+            <img src="assets/jasne_logo.png" alt="Logo Strony" class="site-logo" id="siteLogo">
+        </div>
+
+        <div class="search-box">
+            <input type="text" placeholder="Szukaj..." class="search-input">
+            <i class="fas fa-search search-icon"></i>
+        </div>
+
+        <p class="description-text">
+            Znajdź informacje <br> o interesującym Ciebie państwie
+        </p>
+    </div>
+
+    <div class="favorites-overlay" id="favoritesOverlay">
+        <div class="favorites-content">
+            <h2>Ulubione</h2>
+            <p>Lista ulubionych krajów...</p>
+            <button id="closeFavorites">Zamknij</button>
+        </div>
+    </div>
+</body>
+</html>
