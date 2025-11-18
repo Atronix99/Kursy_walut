@@ -12,6 +12,7 @@
     --search-text-color-light: #615B5B;
     --main-container-bg-light: var(--white);
     --settings-menu-bg-light: #D9D9D9;
+    --description-color-text:#066072;
 
     /* dark mode */
     --main-bg-gradient-dark: linear-gradient(-45deg, #1f1c2c, #3f4c6b, #1f1c2c, #3f4c6b); 
@@ -21,6 +22,7 @@
     --search-text-color-dark: #FFFFFF;
     --button-color: #005EFF;
     --button-hover-color: #0047b2;
+    --description-color-text-dark:#d7dada;
 }
 
 @import url('https://fonts.googleapis.com/css2?family=Kadwa:wght@400;700&display=swap');
@@ -140,6 +142,10 @@ body.dark-mode .suggestion-item:hover {
     background: var(--button-color);
 }
 
+body.dark-mode .description-text{
+    color: var(--description-color-text-dark);
+}
+
 /* Main container */
 
 .main-container {
@@ -218,12 +224,13 @@ background: linear-gradient(90deg, rgba(128, 224, 215, 1) 0%, rgba(87, 199, 180,
 }
 
 .description-text {
-    color: var(--text-color-light);
+    color:var(--description-color-text);
     font-size: 26px;
     letter-spacing: 5%;
     line-height: 50px;
     font-family: var(--Kadwa);
     transition: color 0.5s ease;
+    
 }
 
 /* Suggestions */
