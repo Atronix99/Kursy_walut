@@ -3,14 +3,17 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Wyszukiwarka Państw</title>
+    <title>🌐 GeoInfo</title>
     <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
+    <script defer src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
     <script defer src="script.js"></script>
 </head>
 <body>
 
-    <div class="settings-container">
+    <div class="settings-container" data-aos="fade-left" data-aos-duration="600">
         <i class="fas fa-cog settings-icon" id="settingsIcon"></i>
 
         <div class="settings-menu" id="settingsMenu">
@@ -25,32 +28,106 @@
             <div class="menu-option centered-option"> 
                 <button id="favoritesButton">Ulubione kraje</button>
             </div>
+            
+            <div class="menu-option">
+                <span>Waluta</span>
+                <select id="conversionCurrencySelect"></select>
+            </div>
             <div class="cog-placeholder"></div>
         </div>
     </div>
 
+    <section class="main-section" id="mainSection">
+        <div class="main-container" id="mainView" data-aos="zoom-in" data-aos-duration="1000">
+            <div class="logo" data-aos="fade-down" data-aos-delay="400">
+                <img src="assets/jasne_logo.png" alt="Logo Strony" class="site-logo" id="siteLogo">
+            </div>
 
-    <div class="main-container">
-        <div class="logo">
-            <img src="assets/jasne_logo.png" alt="Logo Strony" class="site-logo" id="siteLogo">
+            <div class="search-box" data-aos="fade-up" data-aos-delay="600">
+                <input type="text" placeholder="Szukaj..." class="search-input" autocomplete="off">
+                <i class="fas fa-search search-icon"></i>
+            </div>
+            <div  id="suggestionsBox">
+                <div class="suggestions" id="suggestions"></div>
+            </div>
+            <p class="description-text" data-aos="zoom-in" data-aos-delay="800">
+                Znajdź informacje <br> o interesującym Ciebie państwie
+            </p>
         </div>
+    </section>
 
-        <div class="search-box">
-            <input type="text" placeholder="Szukaj..." class="search-input">
-            <i class="fas fa-search search-icon"></i>
-        </div>
+    <div class="country-details-view hidden-view" id="countryDetailsView">
+        
+        <div class="details-header" data-aos="fade-down" data-aos-duration="600">
+            <div class="search-box small-search" id="detailsSearchBox">
+                <input type="text" placeholder="Szukaj..." class="search-input details-search-input" autocomplete="off">
+                <i class="fas fa-search search-icon"></i>
+                <div class="suggestions" id="detailsSuggestions"></div>
+            </div>
+            
+            <div class="logo-small" data-aos="zoom-in" data-aos-delay="200">
+                <img src="assets/jasne_logo.png" alt="Logo Strony" class="site-logo" id="siteLogoSmall">
+            </div>
+            </div>
+        <div class="content-wrapper">
+            
+            <div class="country-info-block" id="countryInfoBlock" data-aos="fade-right" data-aos-duration="800">
+                <i class="far fa-star favorite-icon" id="favoriteStar" data-aos="zoom-in" data-aos-delay="300"></i> 
+                
+                <div class="info-content">
+                    <div class="flag-and-name">
+                        <img src="" alt="Flaga kraju" class="country-flag" id="countryFlag" data-aos="zoom-in" data-aos-delay="400">
+                        <h1 class="country-name" id="countryName" data-aos="fade-right" data-aos-delay="500">Nazwa Kraju</h1>
+                    </div>
 
-        <p class="description-text">
-            Znajdź informacje <br> o interesującym Ciebie państwie
-        </p>
+                    <div class="country-data">
+                        <p data-aos="fade-left" data-aos-delay="600"><strong>Stolica:</strong> <span id="countryCapital">N/A</span></p>
+                        <p data-aos="fade-left" data-aos-delay="700"><strong>Region:</strong> <span id="countryRegion">N/A</span></p>
+                        <p data-aos="fade-left" data-aos-delay="800"><strong>Populacja:</strong> <span id="countryPopulation">N/A</span></p>
+                        <p data-aos="fade-left" data-aos-delay="900"><strong>Waluta:</strong> <span id="countryCurrency">N/A</span></p>
+                        <p data-aos="fade-left" data-aos-delay="1000"><strong>Język:</strong> <span id="countryLanguage">N/A</span></p>
+                        <p data-aos="fade-left" data-aos-delay="1100"><strong>Strefa czasowa:</strong> <span id="countryTimezone">N/A</span></p>
+                    </div>
+                </div>
+            </div>
+            <div class="currency-exchange-block" id="currencyExchangeBlock" data-aos="fade-left" data-aos-duration="800" data-aos-delay="200">
+                <div class="exchange-header">
+                    <div class="currency-converter" data-aos="fade-up" data-aos-delay="400">
+                        <label for="currencyAmount">Przelicznik Walut:</label>
+                        <input type="text" id="currencyAmount" value="1" min="1">
+                        <span id="currencyCode"></span>
+                        <span id="na">na</span>
+                        <span id="conversionCurrencyCode"></span> 
+                        <span id="convertedAmount"></span>
+                    </div>
+                    
+                    <div class="chart-controls">
+                        <button class="chart-btn active" data-period="7" data-aos="fade-up" data-aos-delay="500">Tydzień</button>
+                        <button class="chart-btn" data-period="30" data-aos="fade-up" data-aos-delay="600">Miesiąc</button>
+                        <button class="chart-btn" data-period="365" data-aos="fade-up" data-aos-delay="700">Rok</button>
+                    </div>
+                    
+                    <button id="calculatorButton" class="calculator-btn" data-aos="zoom-in" data-aos-delay="800">Kalkulator</button>
+                </div>
+                
+                <div class="chart-placeholder" data-aos="zoom-in" data-aos-delay="900">
+                    <canvas id="currencyChart"></canvas>
+                    <p id="chartMessage" class="chart-message hidden">Miejsce na wykres kursu walut.</p>
+                </div>
+            </div>
+            </div>
+        
     </div>
-
     <div class="favorites-overlay" id="favoritesOverlay">
-        <div class="favorites-content">
+        <div class="favorites-content" data-aos="zoom-in" data-aos-duration="500">
             <h2>Ulubione</h2>
             <p>Lista ulubionych krajów...</p>
             <button id="closeFavorites">Zamknij</button>
         </div>
     </div>
+    
+    <footer class="site-footer">
+        <p>&copy; 2025 Dawid i Szymon. Wszelkie prawa zastrzeżone.</p>
+    </footer>
 </body>
 </html>
