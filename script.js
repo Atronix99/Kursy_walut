@@ -324,37 +324,98 @@ async function fetchCountries() {
     try {
         const res = await fetch("https://restcountries.com/v3.1/all?fields=name,translations,flags,capital,region,population,currencies,languages,timezones");
         const data = await res.json();
+
+        const regionPL = {
+            "Europe": "Europa",
+            "Asia": "Azja",
+            "Africa": "Afryka",
+            "Americas": "Ameryki",
+            "Oceania": "Oceania",
+            "Antarctic": "Antarktyka"
+        };
+
+        const currencyPL = {
+            "USD": "dolar amerykański",
+            "EUR": "euro",
+            "PLN": "złoty",
+            "GBP": "funt szterling",
+            "JPY": "jen",
+            "CNY": "juan",
+            "RUB": "rubel",
+            "INR": "rupia indyjska",
+            "CHF": "frank szwajcarski",
+            "CAD": "dolar kanadyjski",
+            "AUD": "dolar australijski",
+            "BRL": "real brazylijski",
+            "ZAR": "rand południowoafrykański"
+        };
+
         
+
         allCountries = data.map(c => {
-            const countryName = c.translations?.pol?.common || c.name.common;
+            const countryNamePL = c.translations?.pol?.common || c.name.common;
+
             const currencyCode = c.currencies ? Object.keys(c.currencies)[0] : 'N/A';
-            const currencyName = c.currencies && c.currencies[currencyCode] ? c.currencies[currencyCode].name : 'N/A';
-            const languages = c.languages ? Object.values(c.languages).join(', ') : 'N/A';
+            const currencyName = currencyPL[currencyCode] || (c.currencies && c.currencies[currencyCode] ? c.currencies[currencyCode].name : 'N/A');
+
             
-            if (currencyCode !== 'N/A') {
-                availableCurrencies[currencyCode] = currencyName;
-            }
+            const capitalPL = c.capital && c.capital.length > 0 ? c.capital[0] : 'N/A';
+
+            
+            const languageNames = c.languages
+    ? Object.values(c.languages)
+        .map(lang => {
+            const langLower = lang.toLowerCase();
+            const translationMap = {
+                "english": "angielski",
+                "french": "francuski",
+                "german": "niemiecki",
+                "polish": "polski",
+                "spanish": "hiszpański",
+                "italian": "włoski",
+                "portuguese": "portugalski",
+                "russian": "rosyjski",
+                "chinese": "chiński",
+                "japanese": "japoński",
+                "arabic": "arabski",
+                "hindi": "hindi",
+                "swahili": "suahili",
+                "turkish": "turecki",
+                "korean": "koreański"
+                
+            };
+            return translationMap[langLower] || lang;
+        })
+        .join(', ')
+    : 'N/A';
+
+            if (currencyCode !== 'N/A') availableCurrencies[currencyCode] = currencyName;
 
             return {
-                name: countryName,
+                name: countryNamePL,
                 commonName: c.name.common,
                 flags: c.flags,
-                capital: c.capital ? c.capital[0] : 'N/A',
-                region: c.region || 'N/A',
+                capital: capitalPL,
+                region: regionPL[c.region] || c.region || 'N/A',
                 population: c.population ? c.population.toLocaleString('pl-PL') : 'N/A',
                 currencyCode: currencyCode,
                 currencyName: currencyName,
-                languages: languages,
+                languages: languageNames,
                 timezones: c.timezones ? c.timezones.join(', ') : 'N/A',
             };
-        }).sort((a,b) => a.name.localeCompare(b, "pl"));
-        
-        await fetchFrankfurterCurrencies(); 
+        }).sort((a, b) => a.name.localeCompare(b.name, "pl"));
+
+        await fetchFrankfurterCurrencies();
         populateCurrencySelect(availableCurrencies);
-        
-    } catch(error) {
+
+    } catch (error) {
         console.error("Błąd fetch:", error);
-        document.querySelector(".search-input").placeholder = "Błąd pobierania krajów";
+        const input = document.querySelector(".search-input");
+        input.placeholder = "Błąd pobierania krajów";
+        const desc = document.querySelector('.description-text');
+        desc.innerHTML = "Błąd pobierania krajów.<br>Spróbuj później!";
+        desc.style.color = 'red';
+        desc.style.textDecoration = 'underline';
     }
 }
 
@@ -560,35 +621,29 @@ async function fetchLatestRate(baseCurrency, targetCurrency) {
 async function updateCurrencyConversion(baseCurrency) {
     const amount = parseFloat(currencyAmountInput.value) || 1;
     const targetCurrency = conversionCurrencySelect.value;
-    
-    if (baseCurrency === 'N/A' || !availableCurrencies.hasOwnProperty(baseCurrency)) {
-         setConversionDisplay(baseCurrency, targetCurrency, false);
-         return; 
-    }
-    
-    if (baseCurrency === targetCurrency) {
-        setConversionDisplay(baseCurrency, targetCurrency, true); 
-        return;
-    }
-    
-    setConversionDisplay(baseCurrency, targetCurrency, true); 
 
     const convertedAmountElement = convertedAmountSpan;
-    const currencyAmountLabel = document.querySelector('.currency-converter label');
-    
-    convertedAmountElement.textContent = 'Ładowanie...';
-    currencyAmountLabel.textContent = 'Przelicznik Walut:'; 
-    
-    
+
     const result = await fetchLatestRate(baseCurrency, targetCurrency);
-    
+
     if (result.error) {
-        convertedAmountElement.textContent = 'N/A';
-        currencyAmountLabel.textContent = `Błąd kursu: ${result.error.startsWith('Błąd połączenia') ? 'Błąd API' : result.error}`; 
-    } else {
-        const convertedValue = (amount * result.rate).toFixed(2);
-        convertedAmountElement.textContent = convertedValue;
+        convertedAmountElement.textContent = "N/A";
+        return;
     }
+
+    
+    const adjust = adjustSmallCurrencyAmount(amount, result.rate);
+
+    if (adjust.newAmount !== amount) {
+        currencyAmountInput.value = adjust.newAmount;
+    }
+
+    const adjustedAmount = adjust.newAmount;
+    const rate = result.rate;
+
+    
+    const finalValue = adjustedAmount * rate;
+    convertedAmountElement.textContent = formatConvertedValue(finalValue);
 }
 
 currencyAmountInput.addEventListener('input', () => {
@@ -725,6 +780,8 @@ async function fetchAndRenderChart(baseCurrency, targetCurrency, period) {
     });
 }
 
+
+
 function showChartMessage(message) {
     if (currencyChartInstance) {
         currencyChartInstance.destroy();
@@ -753,13 +810,92 @@ chartButtons.forEach(button => {
         }
     });
 });
+function formatConvertedValue(value) {
+    let digits = 2;
 
+    if (value < 1) digits = 4;
+    if (value < 0.01) digits = 6;
+    if (value < 0.0001) digits = 8;
+
+    return parseFloat(value.toFixed(digits)).toString();
+}
+function adjustSmallCurrencyAmount(amount, rate) {
+    const converted = amount * rate;
+
+    if (converted < 0.001) {
+        return { newAmount: 10000, multiply: 10000 };
+    }
+    if (converted < 0.01) {
+        return { newAmount: 1000, multiply: 1000 };
+    }
+
+    return { newAmount: amount, multiply: 1 };
+}
 
 favoriteStar.addEventListener('click', () => {
     if (currentCountryData) {
         toggleFavorite(currentCountryData);
     }
 });
+
+
+
+/* ==========================
+   OBSŁUGA LUPY I ENTERA
+   ========================== */
+
+const mainSearchInput = document.querySelector(".search-input");
+const mainSearchButton = document.getElementById("searchIcon");
+
+if (mainSearchButton) {
+    mainSearchButton.addEventListener("click", () => {
+        triggerSearch(mainSearchInput.value.trim(), false);
+    });
+}
+
+const detailsSearchInput = document.querySelector(".details-search-input");
+const detailsSearchButton = document.getElementById("detailsSearchIcon");
+
+if (detailsSearchButton) {
+    detailsSearchButton.addEventListener("click", () => {
+        triggerSearch(detailsSearchInput.value.trim(), true);
+    });
+}
+
+// Enter w obu inputach
+mainSearchInput.addEventListener("keydown", e => {
+    if (e.key === "Enter") triggerSearch(mainSearchInput.value.trim(), false);
+});
+detailsSearchInput.addEventListener("keydown", e => {
+    if (e.key === "Enter") triggerSearch(detailsSearchInput.value.trim(), true);
+});
+
+// Wspólna funkcja
+function triggerSearch(query, inDetailsView) {
+    if (!query) return;
+
+    const match = allCountries.find(c =>
+        c.name.toLowerCase().startsWith(query.toLowerCase())
+    );
+
+    if (!match) {
+        const suggestionsEl = inDetailsView ? document.getElementById("detailsSuggestions") : document.getElementById("suggestions");
+        suggestionsEl.innerHTML = "";
+        suggestionsEl.style.display = "none";
+        return;
+    }
+
+    if (inDetailsView) {
+        document.getElementById("detailsSuggestions").innerHTML = "";
+        document.getElementById("detailsSuggestions").style.display = "none";
+    } else {
+        document.getElementById("suggestions").innerHTML = "";
+        document.getElementById("suggestions").style.display = "none";
+        document.querySelector(".main-section").style.display = "none";
+    }
+
+    showCountryDetails(match);
+}
 
 
 
