@@ -573,6 +573,7 @@ function showCountryDetails(country) {
     }
     
     favoriteStar.classList.remove('fas', 'far');
+    
     if (isFavorite(country.commonName)) {
         favoriteStar.classList.add('fas');
     } else {
