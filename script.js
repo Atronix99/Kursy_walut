@@ -811,6 +811,7 @@ chartButtons.forEach(button => {
         }
     });
 });
+// Formatowanie przeliczonej wartości
 function formatConvertedValue(value) {
     let digits = 2;
 
@@ -818,19 +819,32 @@ function formatConvertedValue(value) {
     if (value < 0.01) digits = 6;
     if (value < 0.0001) digits = 8;
 
+    // usuwa nadmiarowe zera po przecinku
     return parseFloat(value.toFixed(digits)).toString();
 }
+
+// Dopasowanie kwoty dla walut o bardzo małej wartości
 function adjustSmallCurrencyAmount(amount, rate) {
     const converted = amount * rate;
 
-    if (converted < 0.001) {
-        return { newAmount: 10000, multiply: 10000 };
-    }
-    if (converted < 0.01) {
-        return { newAmount: 1000, multiply: 1000 };
+    // Standardowe waluty – pozostawiamy oryginalną kwotę
+    if (converted >= 0.01) {
+        return { newAmount: amount, multiply: 1 };
     }
 
-    return { newAmount: amount, multiply: 1 };
+    // Waluty z bardzo małą wartością (np. IDR)
+    let multiply = 1;
+    let newAmount = amount;
+
+    if (converted < 0.001) {
+        multiply = 10000;
+        newAmount = amount * multiply;
+    } else if (converted < 0.01) {
+        multiply = 1000;
+        newAmount = amount * multiply;
+    }
+
+    return { newAmount, multiply };
 }
 
 favoriteStar.addEventListener('click', () => {
