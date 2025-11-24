@@ -54,11 +54,12 @@ body {
     overflow-y: scroll; 
     overflow-x: hidden;
     background: var(--main-bg-gradient-light); 
-    background-size: 400% 400%;
+    background-size: 100% 100%;
     animation: gradientAnimation 15s ease infinite;
     display: flex;
     flex-direction: column; 
     justify-content: flex-start; 
+    align-items: center;
     transition: background 0.5s ease;
 }
 
@@ -73,6 +74,7 @@ body {
     pointer-events: none !important; 
     visibility: hidden;
     flex-grow: 0 !important;
+    display: none !important;
 }
 
 .main-section {
@@ -245,24 +247,20 @@ body.dark-mode .cog-placeholder {
 /*                 SETTINGS                  */
 /* ----------------------------------------- */
 
-.settings-container {
-    position: absolute;
-    top: 0;
-    right: 0;
-    padding: 15px;
-    z-index: 1000; 
-}
+
 
 .settings-icon {
     font-size: 2.5em;
     color: var(--settings-icon-color-light-bg);
     cursor: pointer;
     transition: transform 0.3s ease, color 0.5s ease;
-    padding: 5px;
+    
     position: absolute;
-    top: 41px;
+    top: 50px;
     right: 15px;
     z-index: 1000;
+    
+    
 }
 
 .rotated {
@@ -277,16 +275,21 @@ body.dark-mode .cog-placeholder {
     height: 100vh;
     background-color: var(--settings-menu-bg-light);
     transform: translateX(100%);
-    transition: transform 0.3s ease-in-out, background-color 0.5s ease;
+    transition: transform 0.3s ease-in-out, background-color 0.5s ease, opacity 0.5s ease,display 0.5s ease;
     padding: 15px;
     padding-top: 90px;
     border-bottom-left-radius: 20px;
     box-shadow: -5px 0 10px rgba(0,0,0,0.1);
     z-index: 990;
+    opacity: 0;
+    
 }
 
 .settings-menu.open {
     transform: translateX(0);
+    opacity: 1;
+    
+
 }
 
 .settings-menu h3,
@@ -444,6 +447,8 @@ input:checked + .slider:before {
     align-items: center;
     gap: 10px;
     font-family: var(--Kadwa);
+    flex-grow: 1;
+    justify-content: center;
 }
 
 
@@ -708,6 +713,7 @@ body.dark-mode .details-header {
     background: transparent;
     box-shadow: none;
     transition: color 0.5s ease;
+    width: 90%;
 }
 
 .search-input::placeholder {
@@ -885,7 +891,7 @@ body.dark-mode .details-header {
 }
 
 .logo-small .site-logo {
-    max-width: 350px;
+    max-width: 300px;
 }
 
 .small-search {
@@ -1000,4 +1006,731 @@ body.dark-mode .details-header {
     font-size: 1.1em;
     flex-grow: 1; 
     max-width: 600px;
+}
+
+/* --- CALCULATOR --- */
+
+.calculator-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    opacity: 0; 
+    pointer-events: none; 
+    background-color: rgba(0, 0, 0, 0.4);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    transition: opacity 0.3s ease;
+    z-index: 1000; 
+    padding-top: 50px;
+}
+
+.calculator-overlay.visible {
+    opacity: 1;
+    pointer-events: auto;
+}
+
+.calculator-content {
+    background-color: var(--main-container-bg-light);
+    padding: 30px;
+    border-radius: 15px;
+    width: 90%;
+    max-width: 450px;
+    text-align: center;
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.3);
+    transform: translateY(-100%);
+    opacity: 0;
+    transition: transform 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94), opacity 0.4s ease, background-color 0.5s ease, color 0.5s ease;
+}
+
+.calculator-overlay.visible .calculator-content {
+    transform: translateY(0);
+    opacity: 1;
+}
+
+.calculator-content h2 {
+    color: var(--primary-color);
+    margin-bottom: 20px;
+    font-family: var(--Kadwa);
+    transition: color 0.5s ease;
+}
+
+.calculator-inputs {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.input-group {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    width: 100%;
+    margin-bottom: 15px;
+}
+
+.input-group label {
+    font-family: var(--Kadwa);
+    margin-bottom: 5px;
+    font-size: 1.1em;
+    color: inherit; 
+}
+
+.input-group input[type="text"] {
+    width: 100%;
+    padding: 10px;
+    margin-top: 15px;
+    border-radius: 8px;
+    border: 1px solid var(--primary-color);
+    font-size: 1.2em;
+    text-align: right;
+    background-color: transparent;
+    color: inherit;
+    transition: border-color 0.3s;
+}
+
+.input-group input[type="text"]:focus {
+    border-color: var(--secondary-color);
+    outline: none;
+}
+
+.conversion-result {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    margin-top: 15px;
+}
+
+.conversion-result .fa-equals {
+    font-size: 1.5em;
+    color: var(--primary-color);
+}
+
+.conversion-result p {
+    font-size: 1.8em;
+    font-weight: bold;
+    color: var(--primary-color);
+    font-family: var(--Kadwa);
+}
+
+#calculatedAmount {
+    margin-right: 5px;
+}
+
+.conversion-rate-info {
+    font-size: 0.9em;
+    color: #666;
+    margin-bottom: 25px;
+    font-family: var(--Kadwa);
+}
+
+.calculator-content button {
+    background-color: var(--primary-color);
+    color: var(--white);
+    font-family: var(--Kadwa);
+    padding: 10px 20px;
+    border-radius: 5px;
+    border: none;
+    cursor: pointer;
+    transition: transform 0.3s ease, background-color 0.2s;
+}
+
+.calculator-content .reverse-button {
+    background-color: var(--primary-color);
+    color: var(--white);
+    padding: 8px 15px;
+    font-size: 0.9em;
+    margin: 10px auto 20px;
+    display: block;
+    width: fit-content;
+}
+
+.calculator-content .reverse-button:hover {
+    background-color: var(--button-hover-color);
+    transform: none;
+}
+
+.calculator-content button:hover {
+    background-color: #479279;
+    transform: translateY(-3px);
+}
+
+body.dark-mode .calculator-content {
+    background-color: var(--main-container-bg-dark);
+    color: var(--text-color-dark);
+}
+
+body.dark-mode .calculator-content h2 {
+    color: var(--button-color);
+}
+
+body.dark-mode .input-group input[type="text"]{
+    border: 1px solid var(--button-color);
+    color: var(--text-color-dark);
+}
+
+body.dark-mode .input-group input[type="text"]:focus {
+    border-color: var(--button-hover-color);
+    outline: none;
+}
+
+body.dark-mode .conversion-result .fa-equals {
+    color: var(--button-color);
+}
+
+body.dark-mode .conversion-result p {
+    color: var(--button-color);
+}
+
+body.dark-mode .input-group input[type="number"] {
+    border: 1px solid var(--text-color-dark);
+    color: var(--text-color-dark);
+}
+
+body.dark-mode .calculator-content button {
+    background-color: var(--button-color);
+}
+
+body.dark-mode .calculator-content button:hover {
+    background-color: var(--button-hover-color);
+}
+
+body.dark-mode .conversion-rate-info {
+    color: #aaa;
+}
+
+body.dark-mode .calculator-content .reverse-button {
+    background-color: var(--button-color);
+    color: var(--white);
+}
+
+body.dark-mode .calculator-content .reverse-button:hover {
+    background-color: var(--button-hover-color);
+}
+
+/* =======================================================
+   RESPONSYWNOŚĆ — TABLETY < 1300px
+   ======================================================= */
+@media (max-width: 1300px) {
+    #siteLogoSmall {
+        max-width: 280px;
+    }
+    
+    .exchange-header {
+        flex-wrap: wrap;
+        gap: 10px;
+    }
+}
+
+/* =======================================================
+   RESPONSYWNOŚĆ — TABLETY < 1100px
+   ======================================================= */
+@media (max-width: 1100px) {
+    .small-search {
+        max-width: 220px;
+    }
+    
+    .exchange-header {
+        flex-direction: column;
+        gap: 10px;
+    }
+    
+    .chart-controls {
+        width: 100%;
+        justify-content: center;
+    }
+    
+    .calculator-btn {
+        width: auto;
+        padding: 8px 16px;
+    }
+}
+
+/* =======================================================
+   RESPONSYWNOŚĆ — TABLETY < 900px
+   ======================================================= */
+@media (max-width: 900px) {
+    .details-header {
+        grid-template-columns: 1fr;
+        gap: 15px;
+        padding: 20px;
+        flex-direction: column;
+        align-items: center;
+    }
+    
+    .logo-small {
+        grid-column: 1 / -1;
+        order: -1;
+    }
+    
+    .small-search {
+        grid-column: 1 / -1;
+        max-width: 100%;
+        margin: 0 auto;
+        justify-self: center;
+    }
+    
+    .settings-icon {
+        top: 30px;
+        right: 20px;
+    }
+    
+    .main-container {
+        padding: 40px 30px 60px 30px;
+    }
+
+    .info-content {
+        flex-direction: row;
+        gap: 30px;
+        align-items: flex-start;
+        justify-content: flex-start;
+    }
+
+    .flag-and-name {
+        width: auto;
+        align-items: flex-start;
+        flex-shrink: 0;
+        flex-direction: row;
+        gap: 15px;
+    }
+
+    .country-flag {
+        width: 120px;
+        height: auto;
+        flex-shrink: 0;
+        margin-bottom: 0;
+    }
+
+    .country-name {
+        font-size: 1.5em;
+        text-align: left;
+        width: auto;
+        margin-top: 0;
+        line-height: 1.3;
+        word-wrap: break-word;
+        overflow-wrap: break-word;
+    }
+
+    .country-data {
+        flex: 1;
+        max-width: none;
+    }
+    .country-data p{
+        font-size: 16px;
+    }
+    
+    #detailsSuggestions {
+        max-width: 100%;
+    }
+    
+    .currency-exchange-block {
+        width: 100%;
+        padding: 15px;
+    }
+    
+    .exchange-header {
+        flex-direction: column;
+        gap: 10px;
+        align-items: center;
+    }
+    
+    .currency-converter {
+        width: 100%;
+        justify-content: center;
+    }
+    
+    .calculator-btn {
+        width: auto;
+        padding: 8px 16px;
+        margin: 0 auto;
+        display: block;
+    }
+    
+    .chart-placeholder {
+        height: 250px;
+    }
+}
+
+/* =======================================================
+   RESPONSYWNOŚĆ — TABLETY < 770px
+   ======================================================= */
+@media (max-width: 770px) {
+    .info-content {
+        flex-direction: column;
+        gap: 20px;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .flag-and-name {
+        width: 100%;
+        align-items: center;
+        flex-shrink: 0;
+        flex-direction: column;
+        gap: 10px;
+        order: -1;
+    }
+
+    .country-flag {
+        width: 120px;
+        height: auto;
+        flex-shrink: 0;
+        margin-bottom: 0;
+    }
+
+    .country-name {
+        font-size: 1.4em;
+        text-align: center;
+        width: 100%;
+        margin-top: 0;
+        line-height: 1.3;
+        word-wrap: break-word;
+        overflow-wrap: break-word;
+    }
+
+    .country-data {
+        flex: 1;
+        max-width: 100%;
+        text-align: center;
+    }
+    .country-data p{
+        font-size: 16px;
+    }
+}
+
+
+/* =======================================================
+   RESPONSYWNOŚĆ — TELEFONY < 650px
+   ======================================================= */
+@media (max-width: 650px) {
+    body {
+        background: none;
+        animation: none;
+    }
+    
+    .main-section {
+        min-height: 100vh;
+        width: 100%;
+        padding: 0;
+        margin: 0;
+        background: none;
+    }
+    
+    .main-container {
+        height: 100vh;
+        min-height: 100vh;
+        border-radius: 0;
+        padding: 40px 20px;
+        margin: 0;
+        max-width: 100%;
+        width: 100%;
+        animation: none;
+        box-shadow: none;
+        background: var(--main-container-bg-light);
+        display: flex;
+        flex-direction: column;
+        justify-content: flex-start;
+        align-items: center;
+        padding-top: 60px;
+    }
+    
+    .country-details-view {
+        background: var(--main-bg-gradient-light);
+        background-size: 400% 400%;
+        animation: gradientAnimation 15s ease infinite;
+        min-height: 100vh;
+        width: 100%;
+    }
+    
+    body.dark-mode .country-details-view {
+        background: var(--main-bg-gradient-dark);
+        background-size: 400% 400%;
+        animation: gradientAnimation 15s ease infinite;
+    }
+    
+    .details-header {
+        background-color: var(--details-header-bg-light);
+        grid-template-columns: 1fr;
+        gap: 10px;
+        padding: 15px;
+        flex-direction: column;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    }
+    
+    body.dark-mode .details-header {
+        background-color: var(--details-header-bg-dark);
+    }
+    
+    .settings-icon {
+        top: 40px;
+        right: 15px;
+        font-size: 2em;
+        z-index: 1001;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .site-logo {
+        max-width: 250px;
+        margin-bottom: 40px;
+        margin-top: 0;
+    }
+    
+    .search-box {
+        margin: 0 auto 60px auto;
+        padding: 10px 20px;
+        width: 100%;
+    }
+
+    .country-info-block {
+        width: 100%;
+        max-width: 100%;
+        padding: 15px;
+        margin: 0 auto 20px auto;
+    }
+
+    .info-content {
+        flex-direction: row;
+        align-items: flex-start;
+        text-align: left;
+        gap: 15px;
+    }
+
+    .country-flag {
+        width: 100px;
+        height: auto;
+        flex-shrink: 0;
+    }
+    
+    .flag-and-name {
+        width: auto;
+        flex-shrink: 0;
+    }
+    
+    .country-name {
+        font-size: 1.3em;
+        line-height: 1.2;
+        text-align: center;
+        width: auto;
+        margin-top: 5px;
+    }
+
+    .chart-placeholder {
+        width: 100%;
+        padding: 10px;
+        height: 250px;
+    }
+
+    .chart-placeholder canvas {
+        width: 100% !important;
+        height: 100% !important;
+    }
+
+    .currency-exchange-block {
+        width: 100%;
+        max-width: 100%;
+        padding: 15px;
+    }
+    
+    .exchange-header {
+        flex-direction: column;
+        gap: 10px;
+        width: 100%;
+        align-items: center;
+    }
+    
+    .currency-converter {
+        width: 100%;
+        justify-content: center;
+        font-size: 0.95em;
+    }
+    
+    .chart-controls {
+        width: 100%;
+        justify-content: flex-start;
+        gap: 8px;
+        flex-wrap: wrap;
+    }
+    
+    .chart-btn {
+        flex: 1 1 auto;
+        min-width: 70px;
+    }
+
+    .calculator-btn {
+        padding: 10px 15px;
+        font-size: 0.95em;
+        width: auto;
+        margin: 0 auto;
+        display: block;
+    }
+
+    .site-footer {
+        font-size: 0.75em;
+        text-align: center;
+        padding: 15px 10px;
+        background: var(--footer-bg-light);
+        border: 1px solid #eee;
+        position: sticky;
+        bottom: 0;
+        z-index: 100;
+        flex-shrink: 0;
+    }
+    
+    body.dark-mode .site-footer {
+        background: var(--footer-bg-dark);
+    }
+    
+    .description-text {
+        font-size: 30px;
+        line-height: 30px;
+        margin-top: 40px;
+    }
+    
+    .logo-small {
+        grid-column: 1 / -1;
+        order: -1;
+    }
+    
+    .small-search {
+        max-width: 100%;
+    }
+    
+    #siteLogoSmall {
+        max-width: 200px;
+    }
+    
+    .country-data {
+        font-size: 0.95em;
+    }
+}
+/* =======================================================
+   RESPONSYWNOŚĆ — TELEFONY 470-900px
+   ======================================================= */
+@media (max-width: 900px) and (min-width: 470px) {
+    .settings-icon {
+        top: 35px;
+        right: 15px;
+        font-size: 2em;
+        z-index: 1001;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    .info-content {
+        flex-direction: column;
+        gap: 20px;
+        align-items: center;
+        
+        justify-content: center;
+    }
+
+    .flag-and-name {
+        width: 80%;
+        align-items: center;
+        flex-shrink: 0;
+        flex-direction: column;
+        gap: 10px;
+        order: -1;
+        
+        padding: 20px;
+        border-radius: 15px;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        margin-bottom: 20px;
+    }
+    .country-data {
+        width: 80%;
+        flex: 1;
+        max-width: 100%;
+        text-align: center;
+        background-color: var(--details-block-bg-light);
+        padding: 20px;
+        border-radius: 15px;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    }
+}
+
+/* =======================================================
+   RESPONSYWNOŚĆ — BARDZO MAŁE TELEFONY < 350px
+   ======================================================= */
+@media (max-width: 350px) {
+    .settings-icon {
+        top: 25px;
+        right: 12px;
+        font-size: 1.8em;
+        z-index: 1001;
+    }
+    
+    .main-container {
+        padding: 25px 15px;
+        border-radius: 20px;
+    }
+    
+    .site-logo {
+        max-width: 180px;
+    }
+
+    .info-content {
+        gap: 10px;
+    }
+
+    .country-flag {
+        margin: auto;
+    }
+
+    .calculator-btn {
+        padding: 8px 10px;
+        font-size: 0.85em;
+        width: auto;
+        margin: 0 auto;
+        display: block;
+    }
+
+    .site-footer {
+        font-size: 0.65em;
+        padding: 10px 5px;
+    }
+    
+    .currency-converter {
+        font-size: 0.85em;
+        gap: 5px;
+    }
+    
+    .chart-controls {
+        width: 100%;
+        justify-content: flex-start;
+        gap: 5px;
+    }
+    
+    .chart-btn {
+        flex: 1 1 auto;
+        padding: 6px 8px;
+        font-size: 0.75em;
+        min-width: 50px;
+    }
+    
+    #siteLogoSmall {
+        max-width: 150px;
+    }
+    
+    .country-name {
+        font-size: 0.9em;
+        line-height: 1.2;
+        word-wrap: break-word;
+        overflow-wrap: break-word;
+    }
+    
+    .country-data {
+        font-size: 0.8em;
+    }
+    
+    
+    
+    .flag-and-name {
+        align-items: flex-start;
+    }
 }
