@@ -12,30 +12,30 @@
     <script defer src="script.js"></script>
 </head>
 <body>
-
-    <div class="settings-container" data-aos="fade-left" data-aos-duration="600">
-        <i class="fas fa-cog settings-icon" id="settingsIcon"></i>
-
-        <div class="settings-menu" id="settingsMenu">
-            <h3>Settings</h3>
-            <div class="menu-option">
-                <span class="settings-menu-span">Dark/Light <br>Mode</span>
-                <label class="switch">
-                    <input type="checkbox" id="darkModeToggle"> 
-                    <span class="slider round"></span>
-                </label>
-            </div>
-            <div class="menu-option centered-option"> 
-                <button id="favoritesButton">Favorite Countries</button>
-            </div>
+    <i class="fas fa-cog settings-icon" id="settingsIcon"></i>
+    
             
-            <div class="menu-option">
-                <span class="settings-menu-span">Base <br>Currency</span>
-                <select id="conversionCurrencySelect"></select>
-            </div>
-            <div class="cog-placeholder"></div>
+
+    <div class="settings-menu" id="settingsMenu">
+        <h3>Settings</h3>
+        <div class="menu-option">
+            <span class="settings-menu-span">Dark/Light <br>Mode</span>
+            <label class="switch">
+                <input type="checkbox" id="darkModeToggle"> 
+                <span class="slider round"></span>
+            </label>
         </div>
+        <div class="menu-option centered-option"> 
+            <button id="favoritesButton">Favorite Countries</button>
+        </div>
+            
+        <div class="menu-option">
+            <span class="settings-menu-span">Base <br>Currency</span>
+            <select id="conversionCurrencySelect"></select>
+        </div>
+        <div class="cog-placeholder"></div>
     </div>
+    
 
     <section class="main-section" id="mainSection">
         <div class="main-container" id="mainView" data-aos="zoom-in" data-aos-duration="1000">
@@ -129,5 +129,35 @@
     <footer class="site-footer">
         <p>&copy; 2025 Dawid and Szymon. All rights reserved.</p>
     </footer>
+    <div class="calculator-overlay" id="calculatorOverlay">
+    <div class="calculator-content" data-aos="zoom-in" data-aos-duration="500">
+        <h2>Currency Calculator</h2>
+        
+        <div class="calculator-inputs">
+            <div class="input-group">
+                <label for="baseAmountInput">Amount in <span id="calcBaseCurrencyCode">XXX</span>:</label>
+                <input type="text" id="baseAmountInput" value="1" min="0.01" step="any" placeholder="Enter amount">
+            </div>
+            
+            <div class="conversion-result">
+                <i class="fas fa-equals"></i>
+                <p>
+                    <span id="calculatedAmount">0.00</span> 
+                    <span id="calcTargetCurrencyCode">YYY</span>
+                </p>
+            </div>
+            
+        </div>
+        
+        <button id="reverseConversionButton" class="reverse-button" title="Reverse Currencies">
+             <i class="fas fa-exchange-alt"></i> Reverse
+        </button>
+        <p class="conversion-rate-info">
+            Exchange Rate: 1 <span id="rateBaseCode">XXX</span> = <span id="rateValue">N/A</span> <span id="rateTargetCode">YYY</span>
+        </p>
+
+        <button id="closeCalculator">Close</button>
+    </div>
+</div>
 </body>
 </html>
