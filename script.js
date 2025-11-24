@@ -64,8 +64,7 @@ function setConversionDisplay(baseCurrency, targetCurrency, isSupported) {
         converterLabel.style.display = 'inline';
         na.style.display = 'inline';
         
-        amountInput.disabled = false;
-        amountInput.value = amountInput.value || '1';
+        amountInput.textContent = '1'; 
         resultSpan.textContent = 'N/A';
         converterLabel.textContent = 'Currency Converter:';
         baseCode.textContent = baseCurrency;
@@ -640,7 +639,7 @@ async function fetchLatestRate(baseCurrency, targetCurrency) {
 
 /** Aktualizuje wynik przeliczenia waluty. */
 async function updateCurrencyConversion(baseCurrency) {
-    const amount = parseFloat(currencyAmountInput.value) || 1;
+    const amount = parseFloat(currencyAmountInput.textContent) || 1;
     const targetCurrency = conversionCurrencySelect.value;
 
     const convertedAmountElement = convertedAmountSpan;
@@ -654,25 +653,13 @@ async function updateCurrencyConversion(baseCurrency) {
 
     
     // Korekta ilości dla walut o bardzo niskiej wartości
-    const adjust = adjustSmallCurrencyAmount(amount, result.rate);
-
-    if (adjust.newAmount !== amount) {
-        currencyAmountInput.value = adjust.newAmount;
-    }
-
-    const adjustedAmount = adjust.newAmount;
+    const adjustedAmount = amount;
     const rate = result.rate;
 
     
     const finalValue = adjustedAmount * rate;
     convertedAmountElement.textContent = formatConvertedValue(finalValue);
 }
-
-currencyAmountInput.addEventListener('input', () => {
-    if (currentCountryData) {
-        updateCurrencyConversion(currentCountryData.currencyCode);
-    }
-});
 
 /** Oblicza daty dla wykresu historycznego. */
 function getDates(daysAgo) {
