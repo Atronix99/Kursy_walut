@@ -129,5 +129,35 @@
     <footer class="site-footer">
         <p>&copy; 2025 Dawid and Szymon. All rights reserved.</p>
     </footer>
+    <div class="calculator-overlay" id="calculatorOverlay">
+    <div class="calculator-content" data-aos="zoom-in" data-aos-duration="500">
+        <h2>Currency Calculator</h2>
+        
+        <div class="calculator-inputs">
+            <div class="input-group">
+                <label for="baseAmountInput">Amount in <span id="calcBaseCurrencyCode">XXX</span>:</label>
+                <input type="text" id="baseAmountInput" value="1" min="0.01" step="any" placeholder="Enter amount">
+            </div>
+            
+            <div class="conversion-result">
+                <i class="fas fa-equals"></i>
+                <p>
+                    <span id="calculatedAmount">0.00</span> 
+                    <span id="calcTargetCurrencyCode">YYY</span>
+                </p>
+            </div>
+            
+        </div>
+        
+        <button id="reverseConversionButton" class="reverse-button" title="Reverse Currencies">
+             <i class="fas fa-exchange-alt"></i> Reverse
+        </button>
+        <p class="conversion-rate-info">
+            Exchange Rate: 1 <span id="rateBaseCode">XXX</span> = <span id="rateValue">N/A</span> <span id="rateTargetCode">YYY</span>
+        </p>
+
+        <button id="closeCalculator">Close</button>
+    </div>
+</div>
 </body>
 </html>
