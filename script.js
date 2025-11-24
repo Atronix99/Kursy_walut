@@ -1,3 +1,4 @@
+// --- Elementy DOM ---
 const settingsIcon = document.getElementById('settingsIcon');
 const settingsMenu = document.getElementById('settingsMenu');
 const favoritesButton = document.getElementById('favoritesButton');
@@ -31,12 +32,19 @@ const chartMessageElement = document.getElementById('chartMessage');
 const calculatorButton = document.getElementById('calculatorButton');
 const chartControlsDiv = document.querySelector('.chart-controls');
 
-let allCountries = [];
-let availableCurrencies = {};
-let currentCountryData = null;
-let favorites = [];
-let currencyChartInstance = null;
+// --- Zmienne Globalne ---
+let allCountries = []; // Wszystkie kraje pobrane z API
+let availableCurrencies = {}; // Waluty dostępne w Frankfurter API
+let currentCountryData = null; // Dane aktualnie wyświetlanego kraju
+let favorites = []; // Lista ulubionych krajów
+let currencyChartInstance = null; // Instancja Chart.js
 
+/**
+ * Ustawia wyświetlanie konwertera walut w zależności od tego, czy waluta bazowa jest wspierana.
+ * @param {string} baseCurrency Kod waluty bazowej (kraju).
+ * @param {string} targetCurrency Kod waluty docelowej (wybranej w ustawieniach).
+ * @param {boolean} isSupported Czy waluta bazowa jest wspierana przez API kursów.
+ */
 function setConversionDisplay(baseCurrency, targetCurrency, isSupported) {
     const currencyConverterDiv = currencyAmountInput.closest('.currency-converter');
     const amountInput = currencyAmountInput;
@@ -48,6 +56,7 @@ function setConversionDisplay(baseCurrency, targetCurrency, isSupported) {
     const isSameCurrency = baseCurrency === targetCurrency && isSupported;
 
     if (isSupported && !isSameCurrency) {
+        // Prawidłowe wyświetlanie konwertera
         amountInput.style.display = 'inline';
         baseCode.style.display = 'inline';
         targetCode.style.display = 'inline';
@@ -55,10 +64,9 @@ function setConversionDisplay(baseCurrency, targetCurrency, isSupported) {
         converterLabel.style.display = 'inline';
         na.style.display = 'inline';
         
-        amountInput.disabled = false;
-        amountInput.value = amountInput.value || '1';
+        amountInput.textContent = '1'; 
         resultSpan.textContent = 'N/A';
-        converterLabel.textContent = 'Przelicznik Walut:';
+        converterLabel.textContent = 'Currency Converter:';
         baseCode.textContent = baseCurrency;
         targetCode.textContent = targetCurrency;
         
@@ -68,13 +76,14 @@ function setConversionDisplay(baseCurrency, targetCurrency, isSupported) {
         calculatorButton.classList.remove('hidden-view');
         
     } else if (isSameCurrency) {
+        // Waluta bazowa jest taka sama jak docelowa
         amountInput.style.display = 'none';
         baseCode.style.display = 'none';
         targetCode.style.display = 'none';
         na.style.display = 'none';
         
-        converterLabel.textContent = 'Przelicznik Walut:';
-        resultSpan.textContent = 'Ta sama waluta'; 
+        converterLabel.textContent = 'Currency Converter:';
+        resultSpan.textContent = 'Same Currency';
         resultSpan.style.display = 'inline';
         currencyConverterDiv.classList.add('error-state');
         
@@ -82,12 +91,12 @@ function setConversionDisplay(baseCurrency, targetCurrency, isSupported) {
         calculatorButton.classList.add('hidden-view');
         
     } else {
-        
+        // Waluta bazowa nie jest wspierana (lub jest "N/A")
         const message = baseCurrency === 'N/A' 
-            ? 'Waluta nieznana.' 
-            : `Waluta ${baseCurrency} nieobsługiwana przez API.`;
+            ? 'Currency Unknown.' 
+            : `Currency ${baseCurrency} not supported by API.`;
         
-        converterLabel.textContent = 'Błąd Waluty:';
+        converterLabel.textContent = 'Currency Error:';
         amountInput.style.display = 'none';
         baseCode.style.display = 'none';
         targetCode.style.display = 'none';
@@ -100,28 +109,36 @@ function setConversionDisplay(baseCurrency, targetCurrency, isSupported) {
     }
 }
 
+// --- Funkcje Ulubionych ---
+
+/** Ładuje listę ulubionych krajów z Local Storage. */
 function loadFavorites() {
     const storedFavorites = localStorage.getItem('favorites');
     favorites = storedFavorites ? JSON.parse(storedFavorites) : [];
 }
 
+/** Zapisuje listę ulubionych krajów do Local Storage. */
 function saveFavorites() {
     localStorage.setItem('favorites', JSON.stringify(favorites));
 }
 
+/** Sprawdza, czy kraj jest ulubiony. */
 function isFavorite(countryCommonName) {
     return favorites.includes(countryCommonName);
 }
 
+/** Dodaje/usuwa kraj z ulubionych i aktualizuje gwiazdkę. */
 function toggleFavorite(country) {
     const countryCommonName = country.commonName; 
     const index = favorites.indexOf(countryCommonName);
 
     if (index > -1) {
+        // Usuń
         favorites.splice(index, 1);
         favoriteStar.classList.remove('fas');
         favoriteStar.classList.add('far');
     } else {
+        // Dodaj
         favorites.push(countryCommonName);
         favoriteStar.classList.remove('far');
         favoriteStar.classList.add('fas');
@@ -129,13 +146,15 @@ function toggleFavorite(country) {
     saveFavorites();
 }
 
+/** Usuwa kraj z listy ulubionych z poziomu nakładki. */
 function removeFavoriteFromList(commonName) {
     const index = favorites.indexOf(commonName);
     if (index > -1) {
         favorites.splice(index, 1);
         saveFavorites();
-        renderFavoritesList(); 
+        renderFavoritesList(); // Ponowne renderowanie listy
         
+        // Jeśli aktualnie wyświetlany kraj jest usuwany z ulubionych, aktualizujemy ikonę
         if (currentCountryData && currentCountryData.commonName === commonName) {
             favoriteStar.classList.remove('fas');
             favoriteStar.classList.add('far');
@@ -143,24 +162,26 @@ function removeFavoriteFromList(commonName) {
     }
 }
 
+/** Generuje i wyświetla listę ulubionych krajów w nakładce. */
 function renderFavoritesList() {
     const favoritesContent = document.querySelector('.favorites-content');
     
-    let closeButtonHtml = '<button id="closeFavorites">Zamknij</button>';
-    let listHtml = '<h2>Ulubione</h2>';
+    let closeButtonHtml = '<button id="closeFavorites">Close</button>';
+    let listHtml = '<h2>Favorites</h2>';
     
     if (favorites.length === 0) {
-        listHtml += '<p>Nie masz jeszcze ulubionych krajów.</p>';
+        listHtml += '<p>You do not have any favorite countries yet.</p>';
     } else {
         listHtml += '<ul class="favorites-list">';
         
         favorites.forEach(commonName => {
             const country = allCountries.find(c => c.commonName === commonName);
             if (country) {
+                // Generowanie elementów listy
                 listHtml += `<li data-country-common-name="${commonName}">
                     <span class="favorite-name-flag">
                         ${country.name} 
-                        <img src="${country.flags.svg}" alt="Flaga" style="height: 15px; margin-left: 10px; border: 1px solid #ccc;">
+                        <img src="${country.flags.svg}" alt="Flag" style="height: 15px; margin-left: 10px; border: 1px solid #ccc;">
                     </span>
                     <i class="fas fa-trash-alt remove-favorite" data-common-name="${commonName}" style="cursor: pointer; color: #cc0000; margin-left: 10px;"></i>
                 </li>`;
@@ -168,22 +189,18 @@ function renderFavoritesList() {
         });
         
         listHtml += '</ul>';
-
-        // Zakładam, że masz już zmienne:
-const favoritesOverlay = document.getElementById('favoritesOverlay');
-
-
-
     }
     
 
     
     favoritesContent.innerHTML = listHtml + closeButtonHtml;
     
+    // Ustawienie nasłuchiwania na przycisk zamknięcia
     document.getElementById('closeFavorites').addEventListener('click', () => {
         favoritesOverlay.classList.remove('visible');
     });
 
+    // Ustawienie nasłuchiwania na kliknięcie elementu listy (przejście do detali)
     favoritesContent.querySelectorAll('.favorites-list li').forEach(item => {
         const commonName = item.dataset.countryCommonName;
         
@@ -213,19 +230,18 @@ const favoritesOverlay = document.getElementById('favoritesOverlay');
         });
     });
 }
-// Listener do kliknięcia poza content
+// Nasłuchiwanie na kliknięcie poza zawartością nakładki (zamknięcie)
 favoritesOverlay.addEventListener('click', (e) => {
     if (!favoritesContent.contains(e.target)) {
         favoritesOverlay.classList.remove('visible');
     }
 });
 
-// Delegacja dla przycisków "usuń ulubione"
+// Delegowanie dla przycisków "usuń ulubione"
 favoritesContent.addEventListener('click', (e) => {
     if (e.target.classList.contains('remove-favorite')) {
         const name = e.target.dataset.commonName;
-        removeFromFavorites(name);
-        renderFavoritesList(); // odśwież listę
+        removeFavoriteFromList(name); 
     }
 
     if (e.target.id === 'closeFavorites') {
@@ -233,10 +249,13 @@ favoritesContent.addEventListener('click', (e) => {
     }
 });
 
+// --- Tryb Ciemny/Jasny ---
+
+/** Ustawia tryb ciemny lub jasny. */
 function setDarkMode(isDark) {
     if (isDark) {
         body.classList.add('dark-mode');
-        siteLogo.src = 'assets/ciemne_logo.png'; 
+        siteLogo.src = 'assets/ciemne_logo.png';
         siteLogoSmall.src = 'assets/ciemne_logo.png';
     } else {
         body.classList.remove('dark-mode');
@@ -245,31 +264,38 @@ function setDarkMode(isDark) {
     }
     localStorage.setItem('darkMode', isDark);
     
+    // Odświeżenie wykresu, aby dostosować kolory
     if (currencyChartInstance) {
         const activePeriod = document.querySelector('.chart-btn.active').dataset.period;
         fetchAndRenderChart(currentCountryData.currencyCode, conversionCurrencySelect.value, activePeriod);
     }
+    // Odświeżenie animacji AOS
     if (typeof AOS !== 'undefined') {
         AOS.refreshHard(); 
     }
 }
 
+// --- Inicjalizacja Po Załadowaniu DOM ---
 document.addEventListener('DOMContentLoaded', () => {
+    // Wczytanie preferencji trybu ciemnego
     const isDarkMode = localStorage.getItem('darkMode') === 'true'; 
     if (isDarkMode) {
         darkModeToggle.checked = true;
     }
     setDarkMode(isDarkMode);
     
+    // Wczytanie i ustawienie domyślnej waluty bazowej
     const storedCurrency = localStorage.getItem('conversionCurrency') || 'PLN';
     conversionCurrencyCodeElement.textContent = storedCurrency; 
 
     loadFavorites();
 
+    // Ukrycie stopki w widoku głównym
     if (mainView && !mainView.classList.contains('hidden-view')) {
         siteFooter.classList.add('hidden-view');
     }
 
+    // Inicjalizacja AOS (jeśli dostępny)
     if (typeof AOS !== 'undefined') { 
         AOS.init({
             once: true,
@@ -278,6 +304,8 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 });
+
+// --- Listenery Ustawień ---
 
 settingsIcon.addEventListener('click', () => {
     settingsIcon.classList.toggle('rotated');
@@ -312,123 +340,91 @@ conversionCurrencySelect.addEventListener('change', (event) => {
                  const activePeriod = activeBtn ? activeBtn.dataset.period : '7';
                  fetchAndRenderChart(baseCurrency, newCurrency, activePeriod);
             } else {
-                showChartMessage(`Nie można wyświetlić wykresu dla takich samych walut. Zmień walutę w ustawieniach.`);
+                showChartMessage(`Cannot display chart for the same currency. Change the currency in settings.`);
             }
         } else {
-             showChartMessage(`Waluta ${baseCurrency} jest nieobsługiwana przez API Frankfurter. Wykres niedostępny.`);
+             showChartMessage(`Currency ${baseCurrency} is not supported by the Frankfurter API. Chart unavailable.`);
         }
     }
 });
 
+// --- Pobieranie Danych o Krajach ---
+
+/** Pobiera dane o wszystkich krajach i inicjalizuje listę walut. */
 async function fetchCountries() {
     try {
         const res = await fetch("https://restcountries.com/v3.1/all?fields=name,translations,flags,capital,region,population,currencies,languages,timezones");
         const data = await res.json();
 
-        const regionPL = {
-            "Europe": "Europa",
-            "Asia": "Azja",
-            "Africa": "Afryka",
-            "Americas": "Ameryki",
+        const regionMap = {
+            "Europe": "Europe",
+            "Asia": "Asia",
+            "Africa": "Africa",
+            "Americas": "Americas",
             "Oceania": "Oceania",
-            "Antarctic": "Antarktyka"
+            "Antarctic": "Antarctica"
         };
-
-        const currencyPL = {
-            "USD": "dolar amerykański",
-            "EUR": "euro",
-            "PLN": "złoty",
-            "GBP": "funt szterling",
-            "JPY": "jen",
-            "CNY": "juan",
-            "RUB": "rubel",
-            "INR": "rupia indyjska",
-            "CHF": "frank szwajcarski",
-            "CAD": "dolar kanadyjski",
-            "AUD": "dolar australijski",
-            "BRL": "real brazylijski",
-            "ZAR": "rand południowoafrykański"
-        };
-
         
+        const currencyMap = {}; // Pozostawione dla struktury
 
         allCountries = data.map(c => {
-            const countryNamePL = c.translations?.pol?.common || c.name.common;
+            // Używamy nazwy popularnej (common name) jako głównej nazwy
+            const countryNameDisplay = c.name.common; 
 
             const currencyCode = c.currencies ? Object.keys(c.currencies)[0] : 'N/A';
-            const currencyName = currencyPL[currencyCode] || (c.currencies && c.currencies[currencyCode] ? c.currencies[currencyCode].name : 'N/A');
+            const currencyName = c.currencies && c.currencies[currencyCode] ? c.currencies[currencyCode].name : 'N/A';
+            
+            const capitalDisplay = c.capital && c.capital.length > 0 ? c.capital[0] : 'N/A';
 
             
-            const capitalPL = c.capital && c.capital.length > 0 ? c.capital[0] : 'N/A';
-
-            
+            // Połączenie nazw języków
             const languageNames = c.languages
-    ? Object.values(c.languages)
-        .map(lang => {
-            const langLower = lang.toLowerCase();
-            const translationMap = {
-                "english": "angielski",
-                "french": "francuski",
-                "german": "niemiecki",
-                "polish": "polski",
-                "spanish": "hiszpański",
-                "italian": "włoski",
-                "portuguese": "portugalski",
-                "russian": "rosyjski",
-                "chinese": "chiński",
-                "japanese": "japoński",
-                "arabic": "arabski",
-                "hindi": "hindi",
-                "swahili": "suahili",
-                "turkish": "turecki",
-                "korean": "koreański"
-                
-            };
-            return translationMap[langLower] || lang;
-        })
-        .join(', ')
-    : 'N/A';
+                ? Object.values(c.languages).join(', ')
+                : 'N/A';
 
             if (currencyCode !== 'N/A') availableCurrencies[currencyCode] = currencyName;
 
             return {
-                name: countryNamePL,
+                name: countryNameDisplay,
                 commonName: c.name.common,
                 flags: c.flags,
-                capital: capitalPL,
-                region: regionPL[c.region] || c.region || 'N/A',
-                population: c.population ? c.population.toLocaleString('pl-PL') : 'N/A',
+                capital: capitalDisplay,
+                region: regionMap[c.region] || c.region || 'N/A',
+                population: c.population ? c.population.toLocaleString('en-US') : 'N/A',
                 currencyCode: currencyCode,
                 currencyName: currencyName,
                 languages: languageNames,
                 timezones: c.timezones ? c.timezones.join(', ') : 'N/A',
             };
-        }).sort((a, b) => a.name.localeCompare(b.name, "pl"));
+        }).sort((a, b) => a.name.localeCompare(b.name, "en"));
 
-        await fetchFrankfurterCurrencies();
+        await fetchFrankfurterCurrencies(); // Pobranie listy walut wspieranych przez API kursów
         populateCurrencySelect(availableCurrencies);
 
     } catch (error) {
-        console.error("Błąd fetch:", error);
+        console.error("Błąd pobierania danych o krajach:", error);
         const input = document.querySelector(".search-input");
-        input.placeholder = "Błąd pobierania krajów";
+        input.placeholder = "Error fetching countries";
         const desc = document.querySelector('.description-text');
-        desc.innerHTML = "Błąd pobierania krajów.<br>Spróbuj później!";
+        desc.innerHTML = "Error fetching countries.<br>Please try again later!";
         desc.style.color = 'red';
         desc.style.textDecoration = 'underline';
     }
 }
 
+/** Pobiera listę wspieranych walut z Frankfurter API. */
 async function fetchFrankfurterCurrencies() {
     try {
         const response = await fetch('https://api.frankfurter.app/latest');
         const data = await response.json();
         const frankfurterCurrencies = Object.keys(data.rates);
         
+        // Dodanie waluty bazowej API (zazwyczaj EUR) do listy
         if (!availableCurrencies[data.base]) {
              availableCurrencies[data.base] = data.base; 
         }
         
+        // Filtrowanie walut kraju do tych wspieranych przez Frankfurter API
         const filteredCurrencies = {};
         Object.keys(availableCurrencies).forEach(code => {
             if (frankfurterCurrencies.includes(code) || code === data.base) {
@@ -443,6 +439,7 @@ async function fetchFrankfurterCurrencies() {
 }
 
 
+/** Wypełnia pole wyboru waluty docelowej w ustawieniach. */
 function populateCurrencySelect(currencies) {
     const codes = Object.keys(currencies).sort();
     conversionCurrencySelect.innerHTML = '';
@@ -454,11 +451,12 @@ function populateCurrencySelect(currencies) {
         conversionCurrencySelect.appendChild(option);
     });
     
-    const storedCurrency = localStorage.getItem('conversionCurrency') || 'PLN';
+    // Ustawienie domyślnej lub zapisanej waluty
+    const storedCurrency = localStorage.getItem('conversionCurrency') || 'USD'; 
     if (conversionCurrencySelect.querySelector(`option[value="${storedCurrency}"]`)) {
         conversionCurrencySelect.value = storedCurrency;
-    } else if (codes.includes('PLN')) {
-        conversionCurrencySelect.value = 'PLN'; 
+    } else if (codes.includes('USD')) {
+        conversionCurrencySelect.value = 'USD'; 
     } else if (codes.length > 0) {
         conversionCurrencySelect.value = codes[0]; 
     }
@@ -466,6 +464,9 @@ function populateCurrencySelect(currencies) {
     conversionCurrencyCodeElement.textContent = conversionCurrencySelect.value;
 }
 
+// --- Funkcje Wyszukiwania i Sugestii ---
+
+/** Konfiguruje zachowanie inputu wyszukiwania i wyświetlania sugestii. */
 function setupSearchInput(inputElement, suggestionsElement) {
     inputElement.addEventListener("input", () => {
         const value = inputElement.value.trim().toLowerCase();
@@ -476,6 +477,8 @@ function setupSearchInput(inputElement, suggestionsElement) {
             return;
         }
         const mainContainer=document.querySelector(".main-section")
+        
+        // Filtrowanie krajów rozpoczynających się na wpisaną frazę
         const filtered = allCountries
             .filter(c => c.name.toLowerCase().startsWith(value))
             .slice(0, 10);
@@ -485,11 +488,11 @@ function setupSearchInput(inputElement, suggestionsElement) {
             div.className = "suggestion-item";
             div.textContent = country.name;
             div.addEventListener("click", () => {
-                inputElement.value = country.name;
+                inputElement.value = ""; 
                 suggestionsElement.innerHTML = "";
                 suggestionsElement.style.display = "none";
                 mainContainer.style.display="none"
-                showCountryDetails(country); 
+                showCountryDetails(country);
                 
             });
             suggestionsElement.appendChild(div);
@@ -513,6 +516,7 @@ document.addEventListener("DOMContentLoaded", () => {
     setupSearchInput(mainInput, mainSuggestions);
     setupSearchInput(detailsInput, detailsSuggestions);
     
+    // Ukrywanie sugestii po kliknięciu poza nimi
     document.addEventListener("click", e => {
         if (!mainInput.contains(e.target) && !mainSuggestions.contains(e.target)) {
             mainSuggestions.style.display = "none";
@@ -525,22 +529,28 @@ document.addEventListener("DOMContentLoaded", () => {
     fetchCountries();
 });
 
+// --- Zarządzanie Widokami ---
+
+/** Powrót do widoku głównego (wyszukiwania). */
 function showMainView() {
     mainView.classList.remove('hidden-view');
     countryDetailsView.classList.add('hidden-view');
     siteFooter.classList.add('hidden-view');
     currentCountryData = null;
+    // Zniszczenie instancji wykresu
     if (currencyChartInstance) {
         currencyChartInstance.destroy();
         currencyChartInstance = null;
     }
 }
 
+/** Wyświetla szczegóły wybranego kraju. */
 function showCountryDetails(country) {
     currentCountryData = country;
     
+    // Uzupełnienie danych kraju
     countryFlag.src = country.flags.svg;
-    countryFlag.alt = `Flaga ${country.name}`;
+    countryFlag.alt = `Flag of ${country.name}`;
     countryName.textContent = country.name;
     countryCapital.textContent = country.capital;
     countryRegion.textContent = country.region;
@@ -556,22 +566,25 @@ function showCountryDetails(country) {
     
     const isSupported = baseCurrency !== 'N/A' && availableCurrencies.hasOwnProperty(baseCurrency);
     
-    setConversionDisplay(baseCurrency, targetCurrency, isSupported); 
+    setConversionDisplay(baseCurrency, targetCurrency, isSupported); // Aktualizacja konwertera
     
+    // Resetowanie przycisków okresu wykresu i ustawienie domyślnego
     document.querySelectorAll('.chart-btn').forEach(btn => btn.classList.remove('active'));
     const defaultBtn = document.querySelector('.chart-btn[data-period="7"]');
     
     if (defaultBtn) defaultBtn.classList.add('active');
     
+    // Obsługa wykresu i przeliczania walut
     if (isSupported && baseCurrency !== targetCurrency) {
         updateCurrencyConversion(baseCurrency);
         fetchAndRenderChart(baseCurrency, targetCurrency, defaultBtn.dataset.period);
     } else if (baseCurrency === targetCurrency) {
-        showChartMessage(`Nie można wyświetlić wykresu dla takich samych walut. Zmień walutę w ustawieniach.`);
+        showChartMessage(`Cannot display chart for the same currency. Change the currency in settings.`);
     } else {
-         showChartMessage(`Waluta ${baseCurrency} jest nieobsługiwana przez API Frankfurter. Wykres niedostępny.`);
+         showChartMessage(`Currency ${baseCurrency} is not supported by the Frankfurter API. Chart unavailable.`); 
     }
     
+    // Aktualizacja ikony ulubionych
     favoriteStar.classList.remove('fas', 'far');
     
     if (isFavorite(country.commonName)) {
@@ -580,12 +593,14 @@ function showCountryDetails(country) {
         favoriteStar.classList.add('far');
     }
     
+    // Zmiana widoku
     mainView.classList.add('hidden-view')
     countryDetailsView.classList.remove('hidden-view');
     siteFooter.classList.remove('hidden-view');
     
     window.scrollTo({ top: 0, behavior: 'smooth' });
     
+    // Odświeżenie animacji AOS
     if (typeof AOS !== 'undefined') { 
         requestAnimationFrame(() => {
             requestAnimationFrame(() => {
@@ -595,12 +610,15 @@ function showCountryDetails(country) {
     }
 }
 
+// --- Funkcje Walutowe ---
+
+/** Pobiera najnowszy kurs walut. */
 async function fetchLatestRate(baseCurrency, targetCurrency) {
     if (baseCurrency === 'N/A') {
-        return { rate: null, error: "Waluta kraju jest nieznana." };
+        return { rate: null, error: "Country currency is unknown." };
     }
     if (!availableCurrencies[baseCurrency] || !availableCurrencies[targetCurrency]) {
-        return { rate: null, error: `Waluta ${baseCurrency} jest nieobsługiwana przez API.` };
+        return { rate: null, error: `Currency ${baseCurrency} is not supported by the API.` }; 
     }
 
 
@@ -611,16 +629,17 @@ async function fetchLatestRate(baseCurrency, targetCurrency) {
         if (data.rates && data.rates[targetCurrency]) {
             return { rate: data.rates[targetCurrency], error: null };
         } else {
-            return { rate: null, error: `Brak aktualnego kursu dla ${baseCurrency} na ${targetCurrency}.` };
+            return { rate: null, error: `No current rate available for ${baseCurrency} to ${targetCurrency}.` };
         }
     } catch (error) {
         console.error("Błąd pobierania kursu:", error);
-        return { rate: null, error: "Błąd połączenia z API kursów walut." };
+        return { rate: null, error: "Error connecting to the currency exchange API." };
     }
 }
 
+/** Aktualizuje wynik przeliczenia waluty. */
 async function updateCurrencyConversion(baseCurrency) {
-    const amount = parseFloat(currencyAmountInput.value) || 1;
+    const amount = parseFloat(currencyAmountInput.textContent) || 1;
     const targetCurrency = conversionCurrencySelect.value;
 
     const convertedAmountElement = convertedAmountSpan;
@@ -633,13 +652,8 @@ async function updateCurrencyConversion(baseCurrency) {
     }
 
     
-    const adjust = adjustSmallCurrencyAmount(amount, result.rate);
-
-    if (adjust.newAmount !== amount) {
-        currencyAmountInput.value = adjust.newAmount;
-    }
-
-    const adjustedAmount = adjust.newAmount;
+    // Korekta ilości dla walut o bardzo niskiej wartości
+    const adjustedAmount = amount;
     const rate = result.rate;
 
     
@@ -647,12 +661,7 @@ async function updateCurrencyConversion(baseCurrency) {
     convertedAmountElement.textContent = formatConvertedValue(finalValue);
 }
 
-currencyAmountInput.addEventListener('input', () => {
-    if (currentCountryData) {
-        updateCurrencyConversion(currentCountryData.currencyCode);
-    }
-});
-
+/** Oblicza daty dla wykresu historycznego. */
 function getDates(daysAgo) {
     const today = new Date();
     const startDate = new Date();
@@ -666,6 +675,7 @@ function getDates(daysAgo) {
     };
 }
 
+/** Pobiera historyczne kursy walut z API. */
 async function fetchHistoricalRates(baseCurrency, targetCurrency, days) {
     const dates = getDates(days);
     
@@ -678,7 +688,7 @@ async function fetchHistoricalRates(baseCurrency, targetCurrency, days) {
         if (data.rates && Object.keys(data.rates).length > 0) {
             return data.rates;
         } else {
-            return null; 
+            return null; // Brak danych
         }
     } catch (error) {
         console.error("Błąd pobierania danych historycznych:", error);
@@ -686,39 +696,46 @@ async function fetchHistoricalRates(baseCurrency, targetCurrency, days) {
     }
 }
 
+/** Pobiera dane historyczne i renderuje wykres. */
 async function fetchAndRenderChart(baseCurrency, targetCurrency, period) {
     chartMessageElement.classList.add('hidden-view');
     currencyChartCanvas.classList.remove('hidden-view');
     
+    // Zniszczenie starej instancji wykresu
     if (currencyChartInstance) {
         currencyChartInstance.destroy();
         currencyChartInstance = null;
     }
     
     if (baseCurrency === targetCurrency) {
-        showChartMessage(`Nie można wyświetlić wykresu dla takich samych walut. Zmień walutę w ustawieniach.`);
+        showChartMessage(`Cannot display chart for the same currency. Change the currency in settings.`);
         return;
     }
     
+    // Sprawdzenie wsparcia waluty bazowej
     if (baseCurrency === 'N/A' || !availableCurrencies.hasOwnProperty(baseCurrency)) {
         setConversionDisplay(baseCurrency, targetCurrency, false); 
-        showChartMessage(`Waluta ${baseCurrency} jest nieobsługiwana przez API Frankfurter. Wykres niedostępny.`);
+        showChartMessage(`Currency ${baseCurrency} is not supported by the Frankfurter API. Chart unavailable.`);
         return;
     }
 
     const rates = await fetchHistoricalRates(baseCurrency, targetCurrency, period);
 
     if (!rates || Object.keys(rates).length === 0) {
-        showChartMessage(`Nie udało się pobrać danych historycznych dla ${baseCurrency} na ${targetCurrency} w okresie ${period} dni.`);
+        showChartMessage(`Failed to fetch historical data for ${baseCurrency} to ${targetCurrency} over ${period} days.`);
         return;
     }
     
     const labels = Object.keys(rates).sort();
     const dataPoints = labels.map(date => rates[date][targetCurrency]);
     
+    // Dostosowanie kolorów do trybu ciemnego/jasnego
     const isDarkMode = document.body.classList.contains('dark-mode');
     
-    const chartColor = isDarkMode ? getComputedStyle(document.documentElement).getPropertyValue('--button-color') : getComputedStyle(document.documentElement).getPropertyValue('--primary-color');
+    const chartColor = isDarkMode 
+        ? getComputedStyle(document.documentElement).getPropertyValue('--button-color') 
+        : getComputedStyle(document.documentElement).getPropertyValue('--primary-color');
+        
     const chartColorRgba = chartColor.trim() === '#005EFF' ? 'rgba(0, 94, 255, 0.1)' : 'rgba(94, 189, 158, 0.2)';
 
     currencyChartInstance = new Chart(currencyChartCanvas, {
@@ -726,7 +743,7 @@ async function fetchAndRenderChart(baseCurrency, targetCurrency, period) {
         data: {
             labels: labels,
             datasets: [{
-                label: `Kurs 1 ${baseCurrency} na ${targetCurrency}`,
+                label: `Rate of 1 ${baseCurrency} to ${targetCurrency}`,
                 data: dataPoints,
                 borderColor: chartColor,
                 backgroundColor: chartColorRgba,
@@ -744,7 +761,7 @@ async function fetchAndRenderChart(baseCurrency, targetCurrency, period) {
                     display: true,
                     title: {
                         display: true,
-                        text: 'Data'
+                        text: 'Date'
                     },
                     ticks: {
                          autoSkip: true,
@@ -759,7 +776,7 @@ async function fetchAndRenderChart(baseCurrency, targetCurrency, period) {
                     display: true,
                     title: {
                         display: true,
-                        text: `Wartość w ${targetCurrency}`
+                        text: `Value in ${targetCurrency}`
                     },
                     ticks: {
                          color: isDarkMode ? 'white' : 'black'
@@ -782,7 +799,7 @@ async function fetchAndRenderChart(baseCurrency, targetCurrency, period) {
 }
 
 
-
+/** Wyświetla komunikat zamiast wykresu. */
 function showChartMessage(message) {
     if (currencyChartInstance) {
         currencyChartInstance.destroy();
@@ -793,6 +810,7 @@ function showChartMessage(message) {
     chartMessageElement.textContent = message;
 }
 
+// Listenery dla przycisków okresu wykresu (tydzień, miesiąc, rok)
 chartButtons.forEach(button => {
     button.addEventListener('click', function() {
         chartButtons.forEach(btn => btn.classList.remove('active'));
@@ -806,12 +824,13 @@ chartButtons.forEach(button => {
             if (baseCurrency !== targetCurrency) {
                 fetchAndRenderChart(baseCurrency, targetCurrency, period);
             } else {
-                 showChartMessage(`Nie można wyświetlić wykresu dla takich samych walut. Zmień walutę w ustawieniach.`);
+                 showChartMessage(`Cannot display chart for the same currency. Change the currency in settings.`);
             }
         }
     });
 });
-// Formatowanie przeliczonej wartości
+
+/** Formatowanie przeliczonej wartości walutowej. */
 function formatConvertedValue(value) {
     let digits = 2;
 
@@ -819,20 +838,20 @@ function formatConvertedValue(value) {
     if (value < 0.01) digits = 6;
     if (value < 0.0001) digits = 8;
 
-    // usuwa nadmiarowe zera po przecinku
+    // Usuwa końcowe zera
     return parseFloat(value.toFixed(digits)).toString();
 }
 
-// Dopasowanie kwoty dla walut o bardzo małej wartości
+/** Korekta ilości dla walut o bardzo niskiej wartości (np. zamiast 1 wyświetlamy 1000). */
 function adjustSmallCurrencyAmount(amount, rate) {
     const converted = amount * rate;
 
-    // Standardowe waluty – pozostawiamy oryginalną kwotę
+    // Standardowe waluty – zachowaj oryginalną ilość
     if (converted >= 0.01) {
         return { newAmount: amount, multiply: 1 };
     }
 
-    // Waluty z bardzo małą wartością (np. IDR)
+    // Waluty o bardzo niskiej wartości (np. IDR, VND)
     let multiply = 1;
     let newAmount = amount;
 
@@ -856,7 +875,7 @@ favoriteStar.addEventListener('click', () => {
 
 
 /* ==========================
-   OBSŁUGA LUPY I ENTERA
+   OBSŁUGA IKONY WYSZUKIWANIA I KLAWISZA ENTER
    ========================== */
 
 const mainSearchInput = document.querySelector(".search-input");
@@ -885,10 +904,11 @@ detailsSearchInput.addEventListener("keydown", e => {
     if (e.key === "Enter") triggerSearch(detailsSearchInput.value.trim(), true);
 });
 
-// Wspólna funkcja
+// Wspólna funkcja wyszukiwania
 function triggerSearch(query, inDetailsView) {
     if (!query) return;
 
+    // Szukanie kraju, który pasuje do zapytania (początek nazwy)
     const match = allCountries.find(c =>
         c.name.toLowerCase().startsWith(query.toLowerCase())
     );
@@ -899,7 +919,12 @@ function triggerSearch(query, inDetailsView) {
         suggestionsEl.style.display = "none";
         return;
     }
+    
+    const inputToClear = inDetailsView ? detailsSearchInput : mainSearchInput;
+    
+    inputToClear.value = ""; 
 
+    // Ukrycie sugestii i widoku głównego
     if (inDetailsView) {
         document.getElementById("detailsSuggestions").innerHTML = "";
         document.getElementById("detailsSuggestions").style.display = "none";
@@ -911,6 +936,3 @@ function triggerSearch(query, inDetailsView) {
 
     showCountryDetails(match);
 }
-
-
-
