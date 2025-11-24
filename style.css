@@ -1647,7 +1647,7 @@ body.dark-mode .calculator-content .reverse-button:hover {
         flex: 1;
         max-width: 100%;
         text-align: center;
-        background-color: var(--details-block-bg-light);
+        
         padding: 20px;
         border-radius: 15px;
         box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
@@ -1655,9 +1655,44 @@ body.dark-mode .calculator-content .reverse-button:hover {
 }
 
 /* =======================================================
-   RESPONSYWNOŚĆ — BARDZO MAŁE TELEFONY < 350px
+   RESPONSYWNOŚĆ — BARDZO MAŁE TELEFONY < 470px
    ======================================================= */
-@media (max-width: 350px) {
+@media (max-width: 470px) {
+    .info-content {
+        flex-direction: column;
+        gap: 20px;
+        align-items: center;
+        
+        justify-content: center;
+    }
+
+    .flag-and-name {
+        width: 80%;
+        align-items: center;
+        flex-shrink: 0;
+        flex-direction: column;
+        gap: 10px;
+        order: -1;
+        
+        padding: 20px;
+        border-radius: 15px;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        margin-bottom: 20px;
+    }
+    .country-name{
+        width: 100%;
+    }
+    
+    .country-data {
+        width: 80%;
+        flex: 1;
+        max-width: 100%;
+        text-align: center;
+        
+        padding: 20px;
+        border-radius: 15px;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    }
     .settings-icon {
         top: 25px;
         right: 12px;
