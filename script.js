@@ -799,6 +799,7 @@ document.addEventListener('DOMContentLoaded', () => {
 settingsIcon.addEventListener('click', () => {
     settingsIcon.classList.toggle('rotated');
     settingsMenu.classList.toggle('open');
+    settingsIcon.style.position='fixed';
 });
 
 favoritesButton.addEventListener('click', () => {
