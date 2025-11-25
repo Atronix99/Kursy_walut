@@ -3,7 +3,7 @@ const settingsMenu = document.getElementById('settingsMenu');
 const favoritesButton = document.getElementById('favoritesButton');
 const favoritesOverlay = document.getElementById('favoritesOverlay');
 const favoritesContent = document.querySelector('.favorites-content');
-
+const chartSpinner = document.getElementById('chartSpinner');
 const darkModeToggle = document.getElementById('darkModeToggle');
 const body = document.body;
 const siteLogo = document.getElementById('siteLogo');
@@ -40,6 +40,7 @@ const rateBaseCode = document.getElementById('rateBaseCode');
 const rateValueSpan = document.getElementById('rateValue');
 const rateTargetCode = document.getElementById('rateTargetCode');
 const reverseConversionButton = document.getElementById('reverseConversionButton');
+const currencyContainer= document.querySelector('.currency-converter');
 
 let allCountries = [];
 let availableCurrencies = {};
@@ -69,10 +70,10 @@ function setConversionDisplay(baseCurrency, targetCurrency, isSupported) {
         na.style.display = 'inline';
 
         amountInput.textContent = '1';
-        resultSpan.textContent = 'N/A';
+        resultSpan.textContent = '...';
         converterLabel.textContent = 'Currency Converter:';
         baseCode.textContent = baseCurrency;
-        targetCode.textContent = targetCurrency;
+        targetCode.textContent = targetCurrency + ':';
 
         currencyConverterDiv.classList.remove('error-state');
 
@@ -386,7 +387,7 @@ function populateCurrencySelect(currencies) {
         conversionCurrencySelect.value = codes[0];
     }
 
-    conversionCurrencyCodeElement.textContent = conversionCurrencySelect.value;
+    
 }
 
 async function updateCurrencyConversion(baseCurrency) {
@@ -429,8 +430,10 @@ function getDates(daysAgo) {
 }
 
 async function fetchAndRenderChart(baseCurrency, targetCurrency, period) {
+    chartSpinner.classList.add('active');
+    
     chartMessageElement.classList.add('hidden-view');
-    currencyChartCanvas.classList.remove('hidden-view');
+    currencyChartCanvas.classList.add('hidden-view');
 
     if (currencyChartInstance) {
         currencyChartInstance.destroy();
@@ -438,17 +441,21 @@ async function fetchAndRenderChart(baseCurrency, targetCurrency, period) {
     }
 
     if (baseCurrency === targetCurrency) {
+        chartSpinner.classList.remove('active');
         showChartMessage(`Cannot display chart for the same currency. Change the currency in settings.`);
         return;
     }
 
     if (baseCurrency === 'N/A' || !availableCurrencies.hasOwnProperty(baseCurrency)) {
+        chartSpinner.classList.remove('active');
         setConversionDisplay(baseCurrency, targetCurrency, false);
         showChartMessage(`Currency ${baseCurrency} is not supported by the Frankfurter API. Chart unavailable.`);
         return;
     }
 
     const rates = await fetchHistoricalRates(baseCurrency, targetCurrency, period);
+
+    chartSpinner.classList.remove('active');
 
     if (!rates || Object.keys(rates).length === 0) {
         showChartMessage(`Failed to fetch historical data for ${baseCurrency} to ${targetCurrency} over ${period} days.`);
@@ -524,9 +531,14 @@ async function fetchAndRenderChart(baseCurrency, targetCurrency, period) {
             }
         }
     });
+
+    chartMessageElement.classList.add('hidden-view');
+    currencyChartCanvas.classList.remove('hidden-view');
+
 }
 
 function showChartMessage(message) {
+    chartSpinner.classList.remove('active');
     if (currencyChartInstance) {
         currencyChartInstance.destroy();
         currencyChartInstance = null;
@@ -760,7 +772,7 @@ document.addEventListener('DOMContentLoaded', () => {
     setDarkMode(isDarkMode);
 
     const storedCurrency = localStorage.getItem('conversionCurrency') || 'PLN';
-    conversionCurrencyCodeElement.textContent = storedCurrency;
+    
 
     loadFavorites();
 
@@ -814,7 +826,7 @@ darkModeToggle.addEventListener('change', (event) => {
 conversionCurrencySelect.addEventListener('change', (event) => {
     const newCurrency = event.target.value;
     localStorage.setItem('conversionCurrency', newCurrency);
-    conversionCurrencyCodeElement.textContent = newCurrency;
+    
 
     if (currentCountryData) {
         const baseCurrency = currentCountryData.currencyCode;
